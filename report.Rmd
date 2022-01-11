@@ -1,0 +1,76 @@
+---
+title: "Tide Report"
+output: pdf_document
+params:
+  dat: !r data.frame(Rdt=as.Date("2015-01-01"), level=1)
+  aa: !r data.frame(Rdt=as.Date("2015-01-01"), level=1)
+  port_url: "NA"
+  years: "NA"
+header-includes:
+   - \usepackage{booktabs}
+mainfont: Helvetica
+---
+```{r, echo=FALSE}
+aa <- params$aa
+dat <- params$dat
+port_url <- params$port_url
+years <- params$years
+```
+
+Data Source(s): 
+
+```{r, echo=FALSE, results='asis'}
+ds <- character()
+for(a in seq_along(years)){
+    cat(paste0(port_url, years[a]), "\n")
+}
+```
+
+```{r, echo=FALSE}
+plot(aa$Rdt, aa$level, type="l", xlab = "", ylab = "Level (m)", 
+     ylim = c(min(dat$level, na.rm = T), max(dat$level, na.rm = T)))
+points(dat$Rdt, dat$level, col=2, pch=19)
+```
+
+```{r, results='asis', echo=FALSE, warning=FALSE}
+cols <- 12
+dts <- unique(format(sort(aa$Rdt), "%Y-%m-%d"))
+for(a in seq_along(dts)){
+    indx <- format(aa$Rdt, "%Y-%m-%d") == dts[a]
+    out_dat <- aa[indx, ]
+    out_dat$Rdt <- format(out_dat$Rdt, "%H:%M")
+    out_dat$level <- round(out_dat$level, 2)
+    # For column filling:
+    names(out_dat) <- c("Time", "Level")
+    rows <- ceiling(nrow(out_dat)/(cols/2))
+    square_mat <- function(x, r = rows, c = 2){
+        x <- as.vector(t(x))
+        length(x) <- prod(r, c)
+        x <- matrix(x, ncol = c, nrow = r, byrow = TRUE)
+        #dimnames(x) <- list(NULL, c("Time", "Level"))
+    }
+    join_mats <- function(x){
+        out <- NULL
+        for(a in seq_along(x)){
+            out_tmp <- as.vector(t(x[[a]]))
+            length(out_tmp) <- prod(rows, cols)
+            out_tmp <- matrix(out_tmp, ncol = 2, nrow = rows, byrow = TRUE)
+            out <- cbind(out, out_tmp)
+        }
+        return(out)
+    }
+    out_tmp <- split(out_dat, trunc( 0:(nrow(out_dat)-1)/rows))
+    out_tmp <- lapply(out_tmp, square_mat)
+    out <- join_mats(out_tmp)
+    dimnames(out) <- list(NULL, rep(c("Time", "Level"), cols/2))
+    # For row filling:
+    # out_dat <- as.vector(t(out_dat))
+    # length(out_dat) <- prod(dim(matrix(out_dat, ncol = cols)))
+    # print(knitr::kable(out_dat))
+    # out <- matrix(data = out_dat, ncol = cols, 
+    #               dimnames = list(NULL, rep(c("Time", "Level"), cols/2)), 
+    #               byrow = TRUE)
+    options(knitr.kable.NA = '')
+    print(knitr::kable(out, caption = dts[a], format = "latex", booktabs = TRUE, longtable = FALSE))
+}
+```

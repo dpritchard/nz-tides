@@ -1,0 +1,12 @@
+name: nz-tides
+title: nz-tides
+username:
+account: dpritchard
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 171934
+bundleId: 2810919
+url: https://dpritchard.shinyapps.io/nz-tides/
+when: 1582085041.03912
+asMultiple: FALSE
+asStatic: FALSE
